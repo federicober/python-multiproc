@@ -2,27 +2,25 @@ import logging
 import multiprocessing
 import os
 import time
-from typing import Callable, NoReturn
+from typing import Any, Callable, Literal, NoReturn
 
 N_WORKERS = int(os.getenv("N_WORKERS", "4"))
 
 logger = logging.getLogger(__name__)
 
 
-def run_worker():
+def run_worker() -> None:
     from . import worker
 
     worker.work()
 
 
 class MultiProcess:
-    __procs: set[multiprocessing.Process]
-
     def __init__(self, target: Callable[[], None], n_workers: int) -> None:
         self.target = target
         self.n_workers = n_workers
-        self.__procs = None
-        self.all_dead_procs = []
+        self.__procs: set[multiprocessing.Process] | None = None
+        self.all_dead_procs: list[multiprocessing.Process] = []
 
     @property
     def procs(self) -> list[multiprocessing.Process]:
@@ -39,7 +37,7 @@ class MultiProcess:
             proc.start()
         return self
 
-    def __exit__(self, *_, **__) -> bool:
+    def __exit__(self, *_: Any, **__: Any) -> Literal[False]:
         for proc in self.live_procs():
             logger.info("Terminating process %s", proc)
             proc.terminate()
@@ -68,7 +66,7 @@ class MultiProcess:
             time.sleep(1)
 
 
-def main():
+def main() -> None:
     logging.basicConfig(
         level="INFO",
         format="[%(asctime)s][%(levelname)s][%(module)s:%(lineno)s][%(processName)s]\n%(message)s",

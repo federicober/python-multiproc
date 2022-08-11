@@ -3,7 +3,7 @@ import random
 import signal
 import sys
 import time
-from typing import Callable
+from typing import Any, Callable, cast
 
 SimpleCallable = Callable[[], None]
 
@@ -14,7 +14,7 @@ TASKS: list[tuple[SimpleCallable, float]] = []
 
 def get_task() -> SimpleCallable:
     funcs, weights = zip(*TASKS)
-    return random.choices(funcs, weights=weights, k=1)[0]
+    return cast(SimpleCallable, random.choices(funcs, weights=weights, k=1)[0])
 
 
 def task(weight: float = 1) -> Callable[[SimpleCallable], SimpleCallable]:
@@ -32,7 +32,7 @@ def random_int() -> int:
 
 
 @task(10)
-def long_wait():
+def long_wait() -> None:
     sleep_time = random.randint(1, 10)
     logger.info("Sleeping for %s secs", sleep_time)
     time.sleep(sleep_time)
@@ -50,7 +50,7 @@ def raise_unexpected_error() -> None:
     sys.exit(1)
 
 
-def convert_to_sigint(signum: int, __):
+def convert_to_sigint(signum: int, __: Any) -> None:
     logger.info("Received signal %s", signum)
     raise KeyboardInterrupt()
 
